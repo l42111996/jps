@@ -5,6 +5,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 
 /**
+ * TODO 优化为bit查询跳点
+ * 
  * @author Kevin
  */
 public abstract class JPS<T extends Node> {
@@ -36,12 +38,23 @@ public abstract class JPS<T extends Node> {
         return findPathSync(start, goal, adjacentStop, true);
     }
 
+    /**
+     *
+     * @param start 起始
+     * @param goal 目标
+     * @param adjacentStop 到邻居节点就停止
+     * @param diagonalStop 是否包含对角线
+     * @return
+     */
     public Queue<T> findPathSync(T start, T goal, boolean adjacentStop, boolean diagonalStop) {
         Map<T, Double> fMap = new HashMap<>(); // distance to start + estimate to end
         Map<T, Double> gMap = new HashMap<>(); // distance to start (parent's g + distance from parent)
         Map<T, Double> hMap = new HashMap<>(); // estimate to end
 
-        Queue<T> open = new PriorityQueue<>((a, b) -> {
+        /**
+         * 最小堆存放所有跳点
+         */
+        PriorityQueue<T> open = new PriorityQueue<>((a, b) -> {
             // we want the nodes with the lowest projected F value to be checked first
             return Double.compare(fMap.getOrDefault(a, 0d), fMap.getOrDefault(b, 0d));
         });
@@ -49,11 +62,14 @@ public abstract class JPS<T extends Node> {
         Map<T, T> parentMap = new HashMap<>();
         Set<T> goals = new HashSet<>();
 
+        //找重点周围的格子为目标点
         if (adjacentStop) {
-            if (!diagonalStop)
+            if (!diagonalStop){
                 goals = graph.getNeighborsOf(goal, Graph.Diagonal.NEVER);
-            else
+            }
+            else{
                 goals = findNeighbors(goal, parentMap);
+            }
         }
         if (goal.isWalkable()) {
             goals.add(goal);
@@ -73,7 +89,7 @@ public abstract class JPS<T extends Node> {
             T node = open.poll();
             // mark the current node as checked
             closed.add(node);
-
+            //已经找到终点路径
             if (goals.contains(node)) {
                 return backtrace(node, parentMap);
             }
@@ -86,6 +102,7 @@ public abstract class JPS<T extends Node> {
     }
 
     /**
+     * 找到所有邻居，把邻居设置为当前点 根据当前点进行跳点搜索 找到所有的跳点
      * Identify successors for the given node. Runs a JPS in direction of each available neighbor, adding any open
      * nodes found to the open list.
      * @return All the nodes we have found jumpable from the current node
@@ -102,14 +119,20 @@ public abstract class JPS<T extends Node> {
             T jumpNode = jump(neighbor, node, goals);
 
             // don't add a node we have already gotten to quicker
-            if (jumpNode == null || closed.contains(jumpNode)) continue;
+            if (jumpNode == null || closed.contains(jumpNode)) {
+                continue;
+            }
 
             // determine the jumpNode's distance from the start along the current path
+            //计算跳点到父节点之间的距离
             d = graph.getDistance(jumpNode, node);
+            //计算起始点到当前点的g值
             ng = gMap.getOrDefault(node, 0d) + d;
 
             // if the node has already been opened and this is a shorter path, update it
+            //如果跳点没有在open列表  或者 跳点到起点的g值比以前查出来的g值小则更新这个值
             // if it hasn't been opened, mark as open and update it
+            //TODO 最小堆时间复杂度 o(n)  可以搞个open/close的map做标记,jumpNode内有个boolean判断是否在close或者open里面
             if (!open.contains(jumpNode) || ng < gMap.getOrDefault(jumpNode, 0d)) {
                 gMap.put(jumpNode, ng);
                 hMap.put(jumpNode, graph.getHeuristicDistance(jumpNode, goal));
@@ -132,10 +155,13 @@ public abstract class JPS<T extends Node> {
 
     /**
      * Search towards the child from the parent, returning when a jump point is found.
+     * 从父级向子级搜索，找到跳转点后返回。
      */
     protected abstract T jump(T neighbor, T current, Set<T> goals);
 
     /**
+     * 算出从终点到起始点的路径点集合
+     * 因为parent都是跳点不连续的所以需要算出来
      * Returns a path of the parent nodes from a given node.
      */
     private Queue<T> backtrace(T node, Map<T, T> parentMap) {

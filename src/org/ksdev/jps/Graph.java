@@ -8,10 +8,17 @@ import java.util.function.BiFunction;
  * @author Kevin
  */
 public class Graph<T extends Node> {
+    /**
+     * 对角线路径规则
+     */
     public enum Diagonal {
+        /**走对角线**/
         ALWAYS,
+        /**水平垂直方向 没有障碍物 才可以走对角线**/
         NO_OBSTACLES,
+        /**水平垂直方向 有一个阻挡 才可以走对角线**/
         ONE_OBSTACLE,
+        /**不走对角线**/
         NEVER
     }
 
@@ -110,6 +117,8 @@ public class Graph<T extends Node> {
     }
 
     /**
+     * 获得周围格子
+     * 根据垂直水平是否有阻挡判断是否走对角线
      * @return All reachable neighboring nodes of the given node.
      */
     public Set<T> getNeighborsOf(T node, Diagonal diagonal) {
@@ -117,6 +126,11 @@ public class Graph<T extends Node> {
         int y = node.y;
         Set<T> neighbors = new HashSet<>();
 
+        /**
+         *      N
+         *  W       E
+         *      S
+         */
         boolean n = false, s = false, e = false, w = false, ne = false, nw = false, se = false, sw = false;
 
         // ?
@@ -179,6 +193,12 @@ public class Graph<T extends Node> {
         return neighbors;
     }
 
+    /**
+     * 设置阻挡信息
+     * @param x
+     * @param y
+     * @return
+     */
     public boolean isWalkable(int x, int y) {
         return x >= 0 && x < width && y >= 0 && y < nodes.size() / width && getNode(x, y).walkable;
     }
@@ -197,10 +217,16 @@ public class Graph<T extends Node> {
         this.heuristic = heuristic;
     }
 
+    /**
+     * 距离算法
+     */
     public enum DistanceAlgo {
+        /**曼哈顿距离算法  x轴差值+y轴差值**/
         MANHATTAN(manhattan),
+        /**欧拉几何 两点之间的距离**/
         EUCLIDEAN(euclidean),
         OCTILE(octile),
+        /**切比雪夫多项 **/
         CHEBYSHEV(chebyshev);
 
         BiFunction<Node, Node, Double> algo;

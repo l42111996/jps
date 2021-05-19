@@ -70,6 +70,13 @@ public class JPSDiagAlways<T extends Node> extends JPS<T> {
         // check for forced neighbors
         // check along diagonal
         if (dx != 0 && dy != 0) {
+            //判断对角线的点是否是跳点  原理  当前点到对角线方向的 垂直和水平下一个点都是阻挡  下下个点不是阻挡  则对角线为跳点
+            //向垂直水平方向判断是否是跳点 w:可走 c:current b:阻挡 n:邻居
+            //  w
+            //
+            //  b   n
+            //
+            //  c   b   w
             if ((graph.isWalkable(neighbor.x - dx, neighbor.y + dy) && !graph.isWalkable(neighbor.x - dx, neighbor.y)) ||
                     (graph.isWalkable(neighbor.x + dx, neighbor.y - dy) && !graph.isWalkable(neighbor.x, neighbor.y - dy))) {
                 return neighbor;
@@ -81,11 +88,18 @@ public class JPSDiagAlways<T extends Node> extends JPS<T> {
             }
         } else { // check horizontally/vertically
             if (dx != 0) {
-                if ((graph.isWalkable(neighbor.x + dx, neighbor.y + 1) && !graph.isWalkable(neighbor.x, neighbor.y + 1)) ||
-                        (graph.isWalkable(neighbor.x + dx, neighbor.y - 1) && !graph.isWalkable(neighbor.x, neighbor.y - 1))) {
-                    return neighbor;
-                }
+            //水平方向检测  原理 当前点到邻居垂直方向 邻居上或下有阻挡  且阻挡的垂直方向的下一个点没有阻挡
+            //      b   w
+            //
+            //  c   n
+            //
+            //      b   w
+            if ((graph.isWalkable(neighbor.x + dx, neighbor.y + 1) && !graph.isWalkable(neighbor.x, neighbor.y + 1)) ||
+                    (graph.isWalkable(neighbor.x + dx, neighbor.y - 1) && !graph.isWalkable(neighbor.x, neighbor.y - 1))) {
+                return neighbor;
+            }
             } else {
+                //垂直方向检测
                 if ((graph.isWalkable(neighbor.x + 1, neighbor.y + dy) && !graph.isWalkable(neighbor.x + 1, neighbor.y)) ||
                         (graph.isWalkable(neighbor.x - 1, neighbor.y + dy) && !graph.isWalkable(neighbor.x - 1, neighbor.y))) {
                     return neighbor;
@@ -94,6 +108,7 @@ public class JPSDiagAlways<T extends Node> extends JPS<T> {
         }
 
         // jump diagonally towards our goal
+        //沿着对角线继续向下找邻居
         return jump(graph.getNode(neighbor.x + dx, neighbor.y + dy), neighbor, goals);
     }
 }
