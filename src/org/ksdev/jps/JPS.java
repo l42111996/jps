@@ -54,10 +54,7 @@ public abstract class JPS<T extends Node> {
         /**
          * 最小堆存放所有跳点
          */
-        PriorityQueue<T> open = new PriorityQueue<>((a, b) -> {
-            // we want the nodes with the lowest projected F value to be checked first
-            return Double.compare(fMap.getOrDefault(a, 0d), fMap.getOrDefault(b, 0d));
-        });
+        PriorityQueue<T> open = new PriorityQueue<>(Comparator.comparingDouble(a -> fMap.getOrDefault(a, 0d)));
         Set<T> closed = new HashSet<>();
         Map<T, T> parentMap = new HashMap<>();
         Set<T> goals = new HashSet<>();
