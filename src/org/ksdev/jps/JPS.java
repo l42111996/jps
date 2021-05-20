@@ -6,7 +6,7 @@ import java.util.concurrent.FutureTask;
 
 /**
  * TODO 优化为bit查询跳点
- * 
+ *
  * @author Kevin
  */
 public abstract class JPS<T extends Node> {
@@ -78,7 +78,7 @@ public abstract class JPS<T extends Node> {
             return null;
         }
 
-        System.out.println("Start: " + start.x + "," + start.y);
+        //System.out.println("Start: " + start.x + "," + start.y);
         // push the start node into the open list
         open.add(start);
 
