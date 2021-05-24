@@ -1,7 +1,6 @@
 package org.ksdev.jps.hexAstar;
 
 import org.ksdev.jps.test.Hex;
-import org.ksdev.jps.test.OffsetCoord;
 
 import java.util.*;
 

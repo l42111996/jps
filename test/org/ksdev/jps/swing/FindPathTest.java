@@ -232,13 +232,18 @@ public class FindPathTest extends JPanel implements MouseListener {
 
         //A82 寻路
         aStar2 = new org.ksdev.jps.astar2.AStar(map,playerX,playerY,targetX,targetY);
+        aStar2.setMaxTimeMill(2000);
         List<Node> nodes = aStar2.search();
-        pathList.clear();
-        for (Node node : nodes) {
-            pathList.add(new int[]{node.getX(),node.getY()});
+        if(nodes==null){
+            System.out.println("A*2 寻路超时 2秒");
+        }else{
+            pathList.clear();
+            for (Node node : nodes) {
+                pathList.add(new int[]{node.getX(),node.getY()});
+            }
+            checkPoint();
+            System.out.println("A*2 耗时:" +(System.currentTimeMillis() - startTime) +"路径"+nodes.size());
         }
-        checkPoint();
-        System.out.println("A*2 耗时:" +(System.currentTimeMillis() - startTime) +"路径"+nodes.size());
 
 
 
@@ -255,6 +260,29 @@ public class FindPathTest extends JPanel implements MouseListener {
                 System.out.println("error");
             }
         }
+
+        int x = -1;
+        int y = -1;
+        for (int[] ints : pathList) {
+            int cx = ints[0];
+            int cy = ints[1];
+            if(x==-1||y==-1){
+                x = cx;
+                y = cy;
+                continue;
+            }
+            if(Math.abs(x-cx)==0&&Math.abs(y-cy)==0){
+                System.err.println("error");
+            }
+            if(Math.abs(x-cx)>1||Math.abs(y-cy)>1){
+
+                System.err.println("error");
+            }
+            x = cx;
+            y = cy;
+
+        }
+
     }
 
 

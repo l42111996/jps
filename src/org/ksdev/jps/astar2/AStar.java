@@ -15,6 +15,7 @@ public class AStar {
 	private HashSet<Node> closeList = new HashSet<>();
 	private byte[][] map;
 	private Node endN;
+	private long maxTimeMill;
 	
 	public AStar(byte[][] map, int startX, int startY, int endX, int endY){
 		this(map, new Node(startX, startY), new Node(endX, endY));
@@ -33,6 +34,8 @@ public class AStar {
 		//开启列表中有节点的话，取出第一个节点，即最小F值的节点
 		Node n;
 		boolean isFind = false;
+
+		long startTime = System.currentTimeMillis();
 		while((n = openList.poll()) != null){
 			this.openMap.remove(n.toInteger(),n);
 			//判断此节点是否是目标点，是则找到了，跳出
@@ -40,6 +43,14 @@ public class AStar {
 				isFind = true;
 				break;
 			}
+
+			if(this.maxTimeMill>0){
+				long now = System.currentTimeMillis();
+				if(now-startTime>this.maxTimeMill){
+					return null;
+				}
+			}
+
 
 			closeList.add(n);
 			
@@ -163,5 +174,9 @@ public class AStar {
 		}
 		result.add(p);
 	}
-	
+
+
+	public void setMaxTimeMill(long maxTimeMill) {
+		this.maxTimeMill = maxTimeMill;
+	}
 }

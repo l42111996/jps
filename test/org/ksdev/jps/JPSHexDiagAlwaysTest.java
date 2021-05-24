@@ -12,7 +12,7 @@ import java.util.concurrent.Future;
 /**
  * @author Kevin
  */
-public class JPSDiagAlwaysTest extends JPSDiagBaseTest {
+public class JPSHexDiagAlwaysTest extends JPSDiagBaseTest {
     @Before
     public void setup() {
         setup(Graph.Diagonal.ALWAYS);
