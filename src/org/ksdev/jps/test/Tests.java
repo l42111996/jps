@@ -63,7 +63,7 @@ public class Tests {
 
 
     static public void testHexDiagonal() {
-        Tests.equalHex("hex_diagonal", new Hex(-1, 2, -1), new Hex(1, 1, -2).diagonalNeighbor(3));
+        Tests.equalHex("hex_diagonal", new Hex(-1, 2, -1), new Hex(1, 1, -2).neighbor(9));
     }
 
 

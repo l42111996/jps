@@ -94,7 +94,7 @@ public class AStar {
 		
 		List<Node> result = null;
 		if(isFind){
-			result = new ArrayList<Node>();
+			result = new ArrayList<>();
 			setResult(result, n);
 		}
 		return result;

@@ -30,14 +30,23 @@ public class AStarHex {
 		openMap.put(startN.getHex(),startN);
 	}
 	
-	public List<Node> search(){
+	public List<Node> search(boolean incloudEndAround){
 		//开启列表中有节点的话，取出第一个节点，即最小F值的节点
 		Node n;
+
+		Set<Hex> endAround = new HashSet<>();
+		if(incloudEndAround){
+			for (int direction = 0; direction < 6; direction++) {
+				endAround.add(endN.getHex().neighbor(direction));
+			}
+		}
+		endAround.add(endN.getHex());
+
 		boolean isFind = false;
 		while((n = openList.poll()) != null){
-			this.openMap.remove(n.getHex(),n);
+			this.openMap.remove(n.getHex());
 			//判断此节点是否是目标点，是则找到了，跳出
-			if(n.equals(endN)){
+			if(endAround.contains(n.getHex())){
 				isFind = true;
 				break;
 			}

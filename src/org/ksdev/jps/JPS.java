@@ -130,6 +130,7 @@ public abstract class JPS<T extends Node> {
             //如果跳点没有在open列表  或者 跳点到起点的g值比以前查出来的g值小则更新这个值
             // if it hasn't been opened, mark as open and update it
             //TODO 最小堆时间复杂度 o(n)  可以搞个open/close的map做标记,jumpNode内有个boolean判断是否在close或者open里面
+            //TODO 这里算法不对 应该从最小堆中移除 再添加进去让它更新g值进行排序
             if (!open.contains(jumpNode) || ng < gMap.getOrDefault(jumpNode, 0d)) {
                 gMap.put(jumpNode, ng);
                 hMap.put(jumpNode, graph.getHeuristicDistance(jumpNode, goal));

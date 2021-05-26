@@ -2,11 +2,13 @@ package org.ksdev.jps.hex;
 
 import org.ksdev.jps.test.Hex;
 
+import java.util.Comparator;
+
 /**
  * Created by JinMiao
  * 2021/5/21.
  */
-public class HexNode {
+public class HexNode{
     private double f;
     private double g;
     private double h;
@@ -24,10 +26,10 @@ public class HexNode {
 
     // 计算G值
     private void calcG(int dist) {
-        if(parentNode!=null){
+        if(parentNode==null){
             this.g = dist;
         }else{
-            this.g = parentNode.g+dist;
+            this.g = parentNode.g+dist*parentNode.getHex().distance(this.hex);
         }
     }
 

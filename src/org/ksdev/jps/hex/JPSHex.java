@@ -9,13 +9,19 @@ import java.util.*;
  * 2021/5/21.
  */
 public abstract class JPSHex {
-    protected Map<Hex,Byte> map = new HashMap<>();
-    private PriorityQueue<HexNode> open = new PriorityQueue<>();
-    private Map<Hex,HexNode> openMap = new HashMap<>();
-    private HashSet<HexNode> closed = new HashSet<>();
-    private Map<HexNode, HexNode> parentMap = new HashMap<>();
+    protected Map<Hex,Byte> map;
+    protected PriorityQueue<HexNode> open = new PriorityQueue<>(Comparator.comparingDouble(a -> a.getF()));
+    protected Map<Hex,HexNode> openMap = new HashMap<>();
+    protected HashSet<HexNode> closed = new HashSet<>();
+    protected Map<HexNode, HexNode> parentMap = new HashMap<>();
 
-    public List<Hex> find(Hex start,Hex end){
+    public JPSHex(Map<Hex, Byte> map) {
+        this.map = map;
+    }
+
+
+
+    public List<Hex> search(Hex start, Hex end){
         Set<Hex> goals = new HashSet<>();
         for (int direction = 0; direction < 6; direction++) {
             Hex neighbor = end.neighbor(direction);
@@ -23,23 +29,24 @@ public abstract class JPSHex {
                 goals.add(neighbor);
             }
         }
-
-        open.add(new HexNode(start));
+        HexNode startHexNode = new HexNode(start);
+        open.add(startHexNode);
+        openMap.put(start,startHexNode);
         while (!open.isEmpty()) {
             //System.out.println(open.size());
             // pop the position of node which has the minimum `f` value.
             HexNode node = open.poll();
+            openMap.remove(node);
             // mark the current node as checked
             closed.add(node);
             //已经找到终点路径
-            if (goals.contains(node)) {
+            if (goals.contains(node.getHex())) {
                 return backtrace(node);
             }
             // add all possible next steps from the current node
-            identifySuccessors(node, end, goals, open, closed, parentMap);
+            identifySuccessors(node, end, goals);
         }
         return null;
-
     }
 
 
@@ -50,18 +57,41 @@ public abstract class JPSHex {
      * nodes found to the open list.
      * @return All the nodes we have found jumpable from the current node
      */
-    private void identifySuccessors(HexNode node, Hex goal, Set<Hex> goals, Queue<HexNode> open, Set<HexNode> closed, Map<HexNode, HexNode> parentMap) {
-        // get all neighbors to the current node
-        Collection<Hex> neighbors = findNeighbors(node, parentMap);
+    private void identifySuccessors(HexNode node, Hex goal, Set<Hex> goals) {
+        //找到周围邻居
+        Collection<Integer> neighborsDirections = findNeighborsDirections(node, parentMap);
 
-        double d;
-        double ng;
-        for (Hex neighbor : neighbors) {
+        for (int direction : neighborsDirections) {
             // jump in the direction of our neighbor
-            Hex jumpNode = jump(neighbor, node, goals);
+            //根据朝向搜索跳点
+            Hex jumpNode = node.getHex();
+            boolean isJumpPoint = false;
+            for(;;){
+                if(jumpNode==null){
+                    break;
+                }
+                if (!isWalkable(jumpNode)){
+                    break;
+                }
+                if (goals.contains(jumpNode)){
+                    isJumpPoint = true;
+                    break;
+                }
+                if(jump(direction, jumpNode, goals)){
+                    jumpNode = jumpNode.neighbor(direction);
+                    isJumpPoint = true;
+                    break;
+                }
+                jumpNode = jumpNode.neighbor(direction);
+            }
+
+
+            if(!isJumpPoint){
+                continue;
+            }
 
             // don't add a node we have already gotten to quicker
-            if (jumpNode == null || closed.contains(jumpNode)) {
+            if (jumpNode == null ||!isWalkable(jumpNode)|| closed.contains(jumpNode)) {
                 continue;
             }
             //计算当前阶段的 g h f
@@ -102,24 +132,29 @@ public abstract class JPSHex {
         int dx, dy,dz;
         int steps;
         Hex temp;
-        HexNode parent = node.getParentNode();
-        while (parent!=null) {
+
+        for(;;){
+            HexNode parent = node.getParentNode();
+            if(parent==null){
+                break;
+            }
             steps = node.getHex().distance(parent.getHex());
             dx = Integer.compare(node.getHex().x, parent.getHex().x);
             dy = Integer.compare(node.getHex().y, parent.getHex().y);
             dz = Integer.compare(node.getHex().z, parent.getHex().z);
             temp = node.getHex();
             for (int i = 0; i < steps; i++) {
-                temp = temp.add(new Hex(dx,dy,dz));
+                temp = temp.subtract(new Hex(dx, dy, dz));
                 path.addFirst(temp);
             }
             node = parent;
+
         }
         return path;
     }
 
-    private boolean isWalkable(Hex hex){
-        Byte b = map.get(Hex.tolong(hex));
+    protected boolean isWalkable(Hex hex){
+        Byte b = map.get(hex);
         if(b==null ||b==1){
             return false;
         }
@@ -131,12 +166,12 @@ public abstract class JPSHex {
      * Find all neighbors for a given node. If node has a parent then prune neighbors based on JPS algorithm,
      * otherwise return all neighbors.
      */
-    protected abstract Set<Hex> findNeighbors(HexNode node, Map<HexNode, HexNode> parentMap);
+    protected abstract Set<Integer> findNeighborsDirections(HexNode node, Map<HexNode, HexNode> parentMap);
 
     /**
      * Search towards the child from the parent, returning when a jump point is found.
      * 从父级向子级搜索，找到跳转点后返回。
      */
-    protected abstract Hex jump(Hex neighbor, HexNode current, Set<Hex> goals);
+    protected abstract boolean jump(int direction, Hex current, Set<Hex> goals);
 
 }

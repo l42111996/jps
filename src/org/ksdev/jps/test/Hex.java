@@ -66,6 +66,14 @@ public class Hex {
         add(new Hex(-1, 1, 0));
         add(new Hex(-1, 0, 1));
         add(new Hex(0, -1, 1));
+
+
+        add(new Hex(2, -1, -1));
+        add(new Hex(1, 1, -2));
+        add(new Hex(-1, 2, -1));
+        add(new Hex(-2, 1, 1));
+        add(new Hex(-1, -1, 2));
+        add(new Hex(1, -2, 1));
     }};
 
     static public Hex direction(int direction) {
@@ -77,40 +85,31 @@ public class Hex {
     }
 
     /**
-     * 对角线
+     * 根据邻居获得朝向
+     * @param neighbor
+     * @return
      */
-    static public ArrayList<Hex> diagonals = new ArrayList<Hex>() {{
-        add(new Hex(2, -1, -1));
-        add(new Hex(1, 1, -2));
-        add(new Hex(-1, 2, -1));
-        add(new Hex(-2, 1, 1));
-        add(new Hex(-1, -1, 2));
-        add(new Hex(1, -2, 1));
-    }};
+    public int getDirection(Hex neighbor){
+        //TODO 这里应该计算一个直线上线的值
 
-    public Hex diagonalNeighbor(int direction) {
-        return add(Hex.diagonals.get(direction));
+
+
+
+
+        Hex directionHex = neighbor.subtract(this);
+        for (int i = 0; i < directions.size(); i++) {
+            Hex tempDirectionHex = direction(i);
+            if(directionHex.x ==tempDirectionHex.x &&directionHex.y ==tempDirectionHex.y&&directionHex.z ==tempDirectionHex.z){
+                return i;
+            }
+        }
+        return -1;
     }
 
 
 
     public int length() {
         return (Math.abs(x) + Math.abs(z) + Math.abs(y)) / 2;
-    }
-
-    public static void main(String[] args) {
-        OffsetCoord offsetCoord = new OffsetCoord(1,1);
-        Hex hex = OffsetCoord.qoffsetToCube(OffsetCoord.ODD,offsetCoord);
-        for (int i = 0; i < 6; i++) {
-            Hex n = hex.neighbor(i);
-
-            System.out.println(OffsetCoord.qoffsetFromCube(OffsetCoord.ODD,n));
-
-
-        }
-
-
-
     }
 
 
