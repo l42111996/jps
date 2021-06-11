@@ -1,6 +1,8 @@
 package org.ksdev.jps.test;
 
+
 import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * x,y,z 坐标系
@@ -59,6 +61,7 @@ public class Hex {
         return new Hex(-z, -x, -y);
     }
 
+
     static public ArrayList<Hex> directions = new ArrayList<Hex>() {{
         add(new Hex(1, -1, 0));
         add(new Hex(1, 0, -1));
@@ -85,26 +88,46 @@ public class Hex {
     }
 
     /**
-     * 根据邻居获得朝向
-     * @param neighbor
+     * 根据半径获得周围格子集合
+     * 不包含自己
+     * @param radius
      * @return
      */
-    public int getDirection(Hex neighbor){
-        //TODO 这里应该计算一个直线上线的值
+    public Collection<Hex> neighbors(int radius) {
+        Collection<Hex> neighbors = new ArrayList<>();
+        for (int i = 1; i <= radius; i++) {
+            cubeRing(neighbors,i);
+        }
+        return neighbors;
+    }
 
 
-
-
-
-        Hex directionHex = neighbor.subtract(this);
-        for (int i = 0; i < directions.size(); i++) {
-            Hex tempDirectionHex = direction(i);
-            if(directionHex.x ==tempDirectionHex.x &&directionHex.y ==tempDirectionHex.y&&directionHex.z ==tempDirectionHex.z){
-                return i;
+    /**
+     * 根据半径或者最外层格子集合
+     * 不包含自己
+     * @param neighbors
+     * @param radius
+     */
+    public void cubeRing(Collection<Hex> neighbors,int radius){
+        Hex cube  = this.add(direction(0).scale(radius));
+        int[] directions = new int[ 6 ];
+        for ( int i = 0; i < 6; i++ )
+        {
+            directions[ i ] = ( 0 + i ) % 6;
+        }
+        for ( int i = 0; i < 6; i++ )
+        {
+            int neighborDirection = ( directions[ i ] + 2 ) % 6;
+            for ( int j = 0; j < radius; j++ )
+            {
+                neighbors.add(cube);
+                cube = cube.neighbor(neighborDirection);
             }
         }
-        return -1;
     }
+
+
+
 
 
 
@@ -149,6 +172,11 @@ public class Hex {
 
     @Override
     public String toString() {
-        return OffsetCoord.qoffsetFromCube(OffsetCoord.ODD,this).toString();
+        return "Hex{" +
+                "x=" + x +
+                ", y=" + y +
+                ", z=" + z +
+                '}';
     }
+
 }
