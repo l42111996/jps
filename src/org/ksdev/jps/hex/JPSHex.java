@@ -1,6 +1,7 @@
 package org.ksdev.jps.hex;
 
 import org.ksdev.jps.test.Hex;
+import org.ksdev.jps.test.OffsetCoord;
 
 import java.util.*;
 
@@ -9,13 +10,13 @@ import java.util.*;
  * 2021/5/21.
  */
 public abstract class JPSHex {
-    protected Map<Hex,Byte> map;
+    protected byte[][] map;
     protected PriorityQueue<HexNode> open = new PriorityQueue<>(Comparator.comparingDouble(a -> a.getF()));
     protected Map<Hex,HexNode> openMap = new HashMap<>();
     protected HashSet<HexNode> closed = new HashSet<>();
     protected Map<HexNode, HexNode> parentMap = new HashMap<>();
 
-    public JPSHex(Map<Hex, Byte> map) {
+    public JPSHex(byte[][] map) {
         this.map = map;
     }
 
@@ -154,8 +155,17 @@ public abstract class JPSHex {
     }
 
     protected boolean isWalkable(Hex hex){
-        Byte b = map.get(hex);
-        if(b==null ||b==1){
+        OffsetCoord offsetCoord = OffsetCoord.qoffsetFromCube(OffsetCoord.ODD,hex);
+        if(offsetCoord.x<0||offsetCoord.y<0){
+            return false;
+        }
+        if(offsetCoord.x>=map.length||offsetCoord.y>=map[0].length)
+        {
+            return false;
+        }
+
+        byte b = map[offsetCoord.x][offsetCoord.y];
+        if(b == 1){
             return false;
         }
         return true;

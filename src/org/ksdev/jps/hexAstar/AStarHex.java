@@ -22,6 +22,7 @@ public class AStarHex {
 	private Node endN;
 	private final int weith;
 	private final int height;
+	private long maxSearchTime = 2000;
 	
 	public AStarHex(Map<Hex, Byte> map, int weith, int height){
 		this.map = map;
@@ -42,16 +43,19 @@ public class AStarHex {
 
 	public LinkedList<OffsetCoord> search(int x, int y, int tx, int ty, boolean incloudEndAround){
 		long startMill = System.currentTimeMillis();
+		//SystemLogger.mapLogger.info("a* 寻路开始");
 		Hex endHex = OffsetCoord.qoffsetToCube(OffsetCoord.ODD,tx,ty);
 		Node n = searchPath(OffsetCoord.qoffsetToCube(OffsetCoord.ODD,x,y),endHex,incloudEndAround);
-		LinkedList<OffsetCoord> result = null;
+		LinkedList<OffsetCoord> result = new LinkedList<>();
 		if(n!=null){
-			result = new LinkedList<>();
 			setResultOffSetCoord(result, n);
 			if(!n.getHex().equals(endHex)&&!isBlock(endHex)){
 				result.add(new OffsetCoord(tx,ty));
 			}
+		}else{
+			//SystemLogger.mapLogger.error("a*寻路没有找到路径 x {} y {} tx {} ty {}",x,y,tx,ty);
 		}
+		//SystemLogger.mapLogger.info("a* 寻路结束 路径长度 {} 耗时 {}",result!=null?result.size():0,System.currentTimeMillis()-startMill);
 		return result;
 	}
 
@@ -89,7 +93,11 @@ public class AStarHex {
 		endAround.add(endN.getHex());
 
 		boolean isFind = false;
+		long startTime = System.currentTimeMillis();
 		while((n = openList.poll()) != null){
+			if(System.currentTimeMillis()-startTime>maxSearchTime){
+				break;
+			}
 			//SystemLogger.exceptionLogger.error("f {} g {} h {} distance {}",n.getF(),n.getG(),n.getH(),n.getHex().distance(end));
 			this.openMap.remove(n.getHex());
 			//判断此节点是否是目标点，是则找到了，跳出
@@ -121,8 +129,7 @@ public class AStarHex {
 		Byte block = map.get(hex);
 		if(block!=null){
 			return block==1;
-		}
-		else{
+		}else{
 			//超出地图边界
 			OffsetCoord offsetCoord = OffsetCoord.qoffsetFromCube(OffsetCoord.ODD,hex);
 			if(offsetCoord.x<0||offsetCoord.x>this.weith||offsetCoord.y<0||offsetCoord.y>this.height){
@@ -181,15 +188,15 @@ public class AStarHex {
 		if (p.getParentNode() == null) {
 			p.setG(dist);
 		} else {
-			//Node pp = p.getParentNode().getParentNode();
-			//if(pp!=null){
-			//	Hex currPoint = p.getHex();
-			//	Hex preHex = pp.getHex();
-			//	Hex note = p.getParentNode().getHex();
-			//	if(!(preHex.x <<1 == currPoint.x +note.x && preHex.z <<1 == currPoint.z +note.z &&preHex.y <<1 == currPoint.y +note.y)){
-			//		dist += 5;	//拐弯加权
-			//	}
-			//}
+			Node pp = p.getParentNode().getParentNode();
+			if(pp!=null){
+				Hex currPoint = p.getHex();
+				Hex preHex = pp.getHex();
+				Hex note = p.getParentNode().getHex();
+				if(!(preHex.x <<1 == currPoint.x +note.x && preHex.z <<1 == currPoint.z +note.z &&preHex.y <<1 == currPoint.y +note.y)){
+					dist += 5;	//拐弯加权
+				}
+			}
 			p.setG(p.getParentNode().getG() + dist);
 		}
 	}

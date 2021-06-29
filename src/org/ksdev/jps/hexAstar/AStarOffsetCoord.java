@@ -2,22 +2,20 @@ package org.ksdev.jps.hexAstar;
 
 
 
-import com.sun.scenario.effect.Offset;
-import org.ksdev.jps.test.Hex;
 import org.ksdev.jps.test.OffsetCoord;
 
 import java.util.*;
 
 /**
  * A*算法
+ * 路径不包含起点，包含终点
  */
 public class AStarOffsetCoord {
 
 	public static final int DIST_STRAIGHT = 10;
 
 	private PriorityQueue<NodeOffsetCoord> openList = new PriorityQueue<>();
-	private Map<OffsetCoord, NodeOffsetCoord> openMap = new HashMap<>();
-	private HashSet<NodeOffsetCoord> closeList = new HashSet<>();
+	private NodeOffsetCoord[][] openMap;
 	//地图阻挡信息
 	private final byte[][] map;
 	private NodeOffsetCoord endN;
@@ -25,6 +23,7 @@ public class AStarOffsetCoord {
 
 	public AStarOffsetCoord(byte[][] map){
 		this.map = map;
+		openMap = new NodeOffsetCoord[map.length][map[0].length];
 	}
 	
 
@@ -39,17 +38,30 @@ public class AStarOffsetCoord {
 	}
 
 	public LinkedList<OffsetCoord> search(int x,int y,int tx,int ty,boolean incloudEndAround){
+		LinkedList<OffsetCoord> result = new LinkedList<>();
+		if(x==tx&&y==ty){
+			return result;
+		}
 		long startMill = System.currentTimeMillis();
 		OffsetCoord endOffsetCoord = new OffsetCoord(tx,ty);
 		NodeOffsetCoord n = searchPath(new OffsetCoord(x,y),endOffsetCoord,incloudEndAround);
-		LinkedList<OffsetCoord> result = new LinkedList<>();
 		if(n!=null){
 			setResultOffSetCoord(result, n);
-			if(!n.getOffsetCoord().equals(endOffsetCoord)&&!isBlock(endOffsetCoord)){
+			if(!n.getOffsetCoord().equals(endOffsetCoord)&&!checkBound(endOffsetCoord)&&!isBlock(endOffsetCoord)){
 				result.add(new OffsetCoord(tx,ty));
 			}
 		}else{
+			System.out.println("a*寻路没有找到路径 x "+ x+" y "+y+" tx "+tx+" ty "+ty);
+			//SystemLogger.mapLogger.error("a*寻路没有找到路径 x {} y {} tx {} ty {}",x,y,tx,ty);
 		}
+		long useTime = System.currentTimeMillis()-startMill;
+		if(useTime>100){
+			//SystemLogger.mapLogger.info("a* 寻路结束 路径长度 {} 耗时 {}",result!=null?result.size():0,System.currentTimeMillis()-startMill);
+		}
+		if(!result.isEmpty()){
+			result.removeFirst();
+		}
+		System.out.println(openList.size());
 		return result;
 	}
 
@@ -59,8 +71,8 @@ public class AStarOffsetCoord {
 	}
 	private void clear(){
 		openList = new PriorityQueue<>();
-		openMap = new HashMap<>();
-		closeList = new HashSet<>();
+		openMap = new NodeOffsetCoord[map.length][map[0].length];
+		//closeList = new HashSet<>();
 		endN = null;
 	}
 
@@ -72,7 +84,8 @@ public class AStarOffsetCoord {
 		this.endN = endN;
 		//起点先添加到开启列表中
 		openList.add(startN);
-		openMap.put(startN.getOffsetCoord(),startN);
+		openMap[start.x][start.y] = startN;
+		//openMap.put(startN.getOffsetCoord(),startN);
 
 
 		//开启列表中有节点的话，取出第一个节点，即最小F值的节点
@@ -93,14 +106,15 @@ public class AStarOffsetCoord {
 				break;
 			}
 			//SystemLogger.exceptionLogger.error("f {} g {} h {} distance {}",n.getF(),n.getG(),n.getH(),n.getOffsetCoord().distance(end));
-			this.openMap.remove(n.getOffsetCoord());
+			OffsetCoord curOffsetCoord = n.getOffsetCoord();
+			NodeOffsetCoord offsetCoord = this.openMap[curOffsetCoord.x][curOffsetCoord.y];
 			//判断此节点是否是目标点，是则找到了，跳出
-			if(endAround.contains(n.getOffsetCoord())){
+			if(endAround.contains(curOffsetCoord)){
 				isFind = true;
 				break;
 			}
-			closeList.add(n);
-			OffsetCoord curOffsetCoord = n.getOffsetCoord();
+			offsetCoord.setState(2);
+			//closeList.add(n);
 			for (int i = 0; i < 6; i++) {
 				OffsetCoord neighbor = curOffsetCoord.neighbor(i);
 				checkNewNode(neighbor, n, DIST_STRAIGHT);
@@ -120,55 +134,38 @@ public class AStarOffsetCoord {
 	 */
 	protected boolean isBlock(OffsetCoord OffsetCoord)
 	{
+		return map[OffsetCoord.x][OffsetCoord.y]==1;
+	}
+
+	protected boolean checkBound(OffsetCoord OffsetCoord){
 		if(OffsetCoord.x<0||OffsetCoord.x>=this.map.length||OffsetCoord.y<0||OffsetCoord.y>=this.map[0].length){
 			return true;
 		}
-		byte block = map[OffsetCoord.x][OffsetCoord.y];
-		if(block==1){
-			return true;
-		}
 		return false;
-	}
-
-	public static void main(String[] args) {
-		OffsetCoord offsetCoord = new OffsetCoord(1,-1);
-		Hex hex = OffsetCoord.qoffsetToCube(OffsetCoord.ODD,offsetCoord);
-
-		//for (int i = 0; i < 6; i++) {
-		//	OffsetCoord offsetCoordNei = offsetCoord.neighbor(i);
-		//	Hex hexNei = hex.neighbor(i);
-		//	System.out.println("offsetCoordNei" +offsetCoordNei);
-		//	System.out.println("hexNei" +OffsetCoord.qoffsetFromCube(OffsetCoord.ODD,hexNei));
-		//	System.out.println("hex" +hexNei);
-		//}
-
-		Hex hexNei = new Hex(2,-1,-1);
-		OffsetCoord offsetCoord1 = OffsetCoord.qoffsetFromCube(OffsetCoord.ODD,hexNei);
-		Hex hex1 = OffsetCoord.qoffsetToCube(OffsetCoord.ODD,offsetCoord1);
-		System.out.println();
-
-
-
 	}
 
 
 	
 	private void checkNewNode(OffsetCoord neighbor, NodeOffsetCoord parentN, int dist){
 		NodeOffsetCoord newNode = new NodeOffsetCoord(neighbor, parentN);
+		if(neighbor.x<0||neighbor.y<0||neighbor.x>=this.openMap.length||neighbor.y>=this.openMap[0].length){
+			return;
+		}
+		NodeOffsetCoord existN = this.openMap[neighbor.x][neighbor.y];
 		//检查是否已在关闭列表中
-		if(closeList.contains(newNode)){
+		if(existN!=null&&existN.getState()==2){
 			return;
 		}
 		//检查地图是否障碍点
 		if(isBlock(neighbor)){
-			closeList.add(newNode);
+			newNode.setState(2);
+			this.openMap[neighbor.x][neighbor.y] = newNode ;
 			return;
 		}
 		
 		//计算G、H、F值
 		calc(newNode, dist);
 
-		NodeOffsetCoord existN = this.openMap.get(neighbor);
 
 		//如果已存在开启列表中，判断当前的G值是否更小，是则更新
 		if(existN != null){
@@ -178,13 +175,13 @@ public class AStarOffsetCoord {
 				existN.setF(newNode.getF());
 				existN.setParentNode(newNode.getParentNode());
 				openList.add(existN);
-				this.openMap.put(neighbor,existN);
+				this.openMap[neighbor.x][neighbor.y] = existN;
 			}
 		}
 		//不在开启列表中，则添加进去
 		else{
 			openList.add(newNode);
-			this.openMap.put(neighbor,newNode);
+			this.openMap[neighbor.x][neighbor.y] = newNode;
 		}
 		
 	}
@@ -200,15 +197,16 @@ public class AStarOffsetCoord {
 		if (p.getParentNode() == null) {
 			p.setG(dist);
 		} else {
-			NodeOffsetCoord pp = p.getParentNode().getParentNode();
-			if(pp!=null){
-				OffsetCoord currPoint = p.getOffsetCoord();
-				OffsetCoord preOffsetCoord = pp.getOffsetCoord();
-				OffsetCoord note = p.getParentNode().getOffsetCoord();
-				if(!(preOffsetCoord.x <<1 == currPoint.x +note.x && preOffsetCoord.y <<1 == currPoint.y +note.y)){
-					dist += 5;	//拐弯加权
-				}
-			}
+			//这里挺耗性能
+			//NodeOffsetCoord pp = p.getParentNode().getParentNode();
+			//if(pp!=null){
+			//	OffsetCoord currPoint = p.getOffsetCoord();
+			//	OffsetCoord preOffsetCoord = pp.getOffsetCoord();
+			//	OffsetCoord note = p.getParentNode().getOffsetCoord();
+			//	if(!(preOffsetCoord.x <<1 == currPoint.x +note.x && preOffsetCoord.y <<1 == currPoint.y +note.y)){
+			//		dist += 5;	//拐弯加权
+			//	}
+			//}
 			p.setG(p.getParentNode().getG() + dist);
 		}
 	}

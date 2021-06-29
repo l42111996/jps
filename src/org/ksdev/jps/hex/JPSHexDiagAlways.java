@@ -12,7 +12,7 @@ import java.util.Set;
  * @author Kevin
  */
 class JPSHexDiagAlways extends JPSHex {
-    public JPSHexDiagAlways(Map<Hex, Byte> map) {
+    public JPSHexDiagAlways(byte[][] map) {
         super(map);
     }
 

@@ -12,6 +12,10 @@ public class NodeOffsetCoord implements Comparable<NodeOffsetCoord>{
 
 	private OffsetCoord offsetCoord;
 	private NodeOffsetCoord parentNode;
+
+	/** 1 在openList 2 在closeList**/
+	private int state = 1;
+
 	
 	private int F;
 	private int G;
@@ -30,6 +34,14 @@ public class NodeOffsetCoord implements Comparable<NodeOffsetCoord>{
 	@Override
 	public int hashCode() {
 		return offsetCoord.hashCode();
+	}
+
+	public int getState() {
+		return state;
+	}
+
+	public void setState(int state) {
+		this.state = state;
 	}
 
 	@Override
