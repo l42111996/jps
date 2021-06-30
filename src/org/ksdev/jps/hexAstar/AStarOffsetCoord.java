@@ -12,22 +12,24 @@ import java.util.*;
  */
 public class AStarOffsetCoord {
 
-	public static final int DIST_STRAIGHT = 10;
-
 	private PriorityQueue<NodeOffsetCoord> openList = new PriorityQueue<>();
 	private NodeOffsetCoord[][] openMap;
 	//地图阻挡信息
 	private final byte[][] map;
+	private final int width;
+	private final int height;
 	private NodeOffsetCoord endN;
 	private long maxSearchTime = 2000;
 
 	public AStarOffsetCoord(byte[][] map){
 		this.map = map;
-		openMap = new NodeOffsetCoord[map.length][map[0].length];
+		this.width = map.length;
+		this.height = map[0].length;
+		openMap = new NodeOffsetCoord[width][height];
 	}
 	
 
-	public List<OffsetCoord> search(OffsetCoord start,OffsetCoord end,boolean incloudEndAround){
+	public List<OffsetCoord> search(OffsetCoord start, OffsetCoord end, boolean incloudEndAround){
 		NodeOffsetCoord n = searchPath(start,end,incloudEndAround);
 		List<OffsetCoord> result = null;
 		if(n!=null){
@@ -51,7 +53,7 @@ public class AStarOffsetCoord {
 				result.add(new OffsetCoord(tx,ty));
 			}
 		}else{
-			System.out.println("a*寻路没有找到路径 x "+ x+" y "+y+" tx "+tx+" ty "+ty);
+			//System.out.println("a*寻路没有找到路径 x "+ x+" y "+y+" tx "+tx+" ty "+ty);
 			//SystemLogger.mapLogger.error("a*寻路没有找到路径 x {} y {} tx {} ty {}",x,y,tx,ty);
 		}
 		long useTime = System.currentTimeMillis()-startMill;
@@ -61,7 +63,6 @@ public class AStarOffsetCoord {
 		if(!result.isEmpty()){
 			result.removeFirst();
 		}
-		System.out.println(openList.size());
 		return result;
 	}
 
@@ -71,7 +72,7 @@ public class AStarOffsetCoord {
 	}
 	private void clear(){
 		openList = new PriorityQueue<>();
-		openMap = new NodeOffsetCoord[map.length][map[0].length];
+		openMap = new NodeOffsetCoord[this.width][this.height];
 		//closeList = new HashSet<>();
 		endN = null;
 	}
@@ -117,7 +118,7 @@ public class AStarOffsetCoord {
 			//closeList.add(n);
 			for (int i = 0; i < 6; i++) {
 				OffsetCoord neighbor = curOffsetCoord.neighbor(i);
-				checkNewNode(neighbor, n, DIST_STRAIGHT);
+				checkNewNode(neighbor, n);
 			}
 		}
 		if(isFind){
@@ -138,7 +139,7 @@ public class AStarOffsetCoord {
 	}
 
 	protected boolean checkBound(OffsetCoord OffsetCoord){
-		if(OffsetCoord.x<0||OffsetCoord.x>=this.map.length||OffsetCoord.y<0||OffsetCoord.y>=this.map[0].length){
+		if(OffsetCoord.x<0||OffsetCoord.x>=this.width||OffsetCoord.y<0||OffsetCoord.y>=this.height){
 			return true;
 		}
 		return false;
@@ -146,9 +147,9 @@ public class AStarOffsetCoord {
 
 
 	
-	private void checkNewNode(OffsetCoord neighbor, NodeOffsetCoord parentN, int dist){
+	private void checkNewNode(OffsetCoord neighbor, NodeOffsetCoord parentN){
 		NodeOffsetCoord newNode = new NodeOffsetCoord(neighbor, parentN);
-		if(neighbor.x<0||neighbor.y<0||neighbor.x>=this.openMap.length||neighbor.y>=this.openMap[0].length){
+		if(checkBound(neighbor)){
 			return;
 		}
 		NodeOffsetCoord existN = this.openMap[neighbor.x][neighbor.y];
@@ -164,7 +165,7 @@ public class AStarOffsetCoord {
 		}
 		
 		//计算G、H、F值
-		calc(newNode, dist);
+		calc(newNode);
 
 
 		//如果已存在开启列表中，判断当前的G值是否更小，是则更新
@@ -186,16 +187,16 @@ public class AStarOffsetCoord {
 		
 	}
 	
-	private void calc(NodeOffsetCoord p, int dist){
-		calcG(p, dist);
+	private void calc(NodeOffsetCoord p){
+		calcG(p);
 		calcH(p);
 		calcF(p);
 	}
 	
 	// 计算G值
-	private void calcG(NodeOffsetCoord p, int dist) {
+	private void calcG(NodeOffsetCoord p) {
 		if (p.getParentNode() == null) {
-			p.setG(dist);
+			p.setG(1);
 		} else {
 			//这里挺耗性能
 			//NodeOffsetCoord pp = p.getParentNode().getParentNode();
@@ -207,7 +208,7 @@ public class AStarOffsetCoord {
 			//		dist += 5;	//拐弯加权
 			//	}
 			//}
-			p.setG(p.getParentNode().getG() + dist);
+			p.setG(p.getParentNode().getG() + 1);
 		}
 	}
 
@@ -223,7 +224,7 @@ public class AStarOffsetCoord {
 		int num =
 				//n.getOffsetCoord().distance(endN.getOffsetCoord());
 				Math.abs(nowX - endX) + Math.abs(nowY - endY);
-		n.setH(num * 10);
+		n.setH(num);
 	}
 
 	// 计算F值
