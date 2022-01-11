@@ -1,6 +1,5 @@
 package org.ksdev.jps.test;
 
-import java.util.ArrayList;
 
 /**
  * 只有xy的坐标系
@@ -11,9 +10,9 @@ public class OffsetCoord {
     public OffsetCoord(int x, int y) {
         this.x = x;
         this.y = y;
-        this.hex = OffsetCoord.qoffsetToCube(ODD,this);
     }
-    private final Hex hex;
+    //@Transient
+    private transient Hex hex;
     //col
     public final int x;
     //row
@@ -40,9 +39,13 @@ public class OffsetCoord {
     }
 
     public OffsetCoord neighbor(int direction) {
-        return qoffsetFromCube(ODD,this.hex.neighbor(direction));
+        return qoffsetFromCube(ODD,getHex().neighbor(direction));
     }
 
+
+    public int distance(int x,int y){
+        return Math.abs(x - this.x) + Math.abs(y - this.y);
+    }
     /**
      * x,y,z坐标点系转 x,y坐标系点
      * @param offset
@@ -77,6 +80,17 @@ public class OffsetCoord {
 
 
 
+    public int toInt(){
+        return (x<<16)|y;
+    }
+
+
+    public static void main(String[] args) {
+        int x = 1;
+        int y = 2;
+        System.out.println(Integer.toBinaryString((x<<16)|y));
+    }
+
     /**
      * x,y坐标系转 x,y,z坐标系
      * @param offset
@@ -104,42 +118,6 @@ public class OffsetCoord {
     }
 
 
-
-    /**
-     * z,y,z坐标系转双倍坐标系
-     * 我们用不上
-     * @param offset
-     * @param h
-     * @return
-     */
-    @Deprecated
-    static public OffsetCoord roffsetFromCube(int offset, Hex h) {
-        int col = h.x + ((h.z + offset * (h.z & 1)) / 2);
-        int row = h.z;
-        if (offset != OffsetCoord.EVEN && offset != OffsetCoord.ODD) {
-            throw new IllegalArgumentException("offset must be EVEN (+1) or ODD (-1)");
-        }
-        return new OffsetCoord(col, row);
-    }
-
-    /**
-     * x,y坐标系转 x,y,z坐标系
-     * 我们用不上
-     * @param offset
-     * @param h
-     * @return
-     */
-    @Deprecated
-    static public Hex roffsetToCube(int offset, OffsetCoord h) {
-        int q = h.x - ((h.y + offset * (h.y & 1)) / 2);
-        int r = h.y;
-        int s = -q - r;
-        if (offset != OffsetCoord.EVEN && offset != OffsetCoord.ODD) {
-            throw new IllegalArgumentException("offset must be EVEN (+1) or ODD (-1)");
-        }
-        return new Hex(q, s, r);
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -159,6 +137,10 @@ public class OffsetCoord {
     }
 
     public Hex getHex() {
+        if(this.hex==null){
+            hex = OffsetCoord.qoffsetToCube(OffsetCoord.ODD,this);
+        }
+
         return hex;
     }
 }

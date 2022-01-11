@@ -61,6 +61,54 @@ public class Hex {
         return new Hex(-z, -x, -y);
     }
 
+    /**
+     * 获得直线上两点之间的两个格子
+     * @param start
+     * @param end
+     * @return
+     */
+    public static Hex[] crossHexs(Hex start,Hex end){
+        int direction = -1;
+        Hex directionHex = end.subtract(start);
+        for (int i = FACE_RIGHT_DIAGONAL; i < directions.size(); i++) {
+            Hex tempHex = directions.get(i);
+            if(tempHex.equals(directionHex)){
+                direction = i;
+                break;
+            }
+        }
+        if(direction==-1){
+            return null;
+        }
+        return crossHexs.get(direction-FACE_RIGHT_DIAGONAL);
+    }
+
+    public static boolean diagonalDiection(Hex start,Hex end){
+        Hex directionHex = end.subtract(start);
+        if(Math.abs(directionHex.x)==2||Math.abs(directionHex.y)==2||Math.abs(directionHex.z)==2){
+            return true;
+        }
+        return false;
+    }
+
+
+    static private ArrayList<Hex[]> crossHexs = new ArrayList<Hex[]>(){{
+
+        //FACE_RIGHT_DIAGONAL = 6,FACE_RIGHT_UP_DIAGONAL = 7,FACE_LEFT_UP_DIAGONAL = 8,FACE_LEFT_DIAGONAL = 9,FACE_LEFT_DOWN_DIAGONAL = 10, FACE_RIGHT_DOWN_DIAGONAL = 11;
+            //右边
+            add(new Hex[]{new Hex(1,0,-1),new Hex(1,-1,0)});
+            //右上
+            add(new Hex[]{new Hex(0,1,-1),new Hex(1,0,-1)});
+            //左上
+            add(new Hex[]{new Hex(0,1,-1),new Hex(-1,1,0)});
+            //左
+            add(new Hex[]{new Hex(-1,1,0),new Hex(-1,0,1)});
+            //左下
+            add(new Hex[]{new Hex(-1,0,1),new Hex(0,-1,1)});
+            //右下
+            add(new Hex[]{new Hex(1,-1,0),new Hex(0,-1,1)});
+        }
+    };
 
     static public ArrayList<Hex> directions = new ArrayList<Hex>() {{
         add(new Hex(1, -1, 0));
@@ -93,17 +141,15 @@ public class Hex {
      * @param radius
      * @return
      */
-    public Collection<Hex> neighbors(int radius) {
-        Collection<Hex> neighbors = new ArrayList<>();
+    public void neighbors(Collection<Hex> neighbors,int radius) {
         for (int i = 1; i <= radius; i++) {
             cubeRing(neighbors,i);
         }
-        return neighbors;
     }
 
 
     /**
-     * 根据半径或者最外层格子集合
+     * 根据半径获得最外层格子集合
      * 不包含自己
      * @param neighbors
      * @param radius

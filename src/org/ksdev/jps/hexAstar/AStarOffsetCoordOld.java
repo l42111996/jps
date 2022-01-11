@@ -10,31 +10,24 @@ import java.util.*;
  * A*算法
  * 路径不包含起点，包含终点
  */
-public class AStarOffsetCoord {
+public class AStarOffsetCoordOld {
 
 	private PriorityQueue<NodeOffsetCoord> openList = new PriorityQueue<>();
-	//private NodeOffsetCoord[][] openMap;
-
-	private Map<Integer,NodeOffsetCoord> openMap = new HashMap<>();
-
+	private NodeOffsetCoord[][] openMap;
 	//地图阻挡信息
-	private final byte[][] map;
+	private byte[][] map;
 	private final int width;
 	private final int height;
 	private NodeOffsetCoord endN;
 	private long maxSearchTime = 2000;
 
-	public AStarOffsetCoord(byte[][] map){
+	public AStarOffsetCoordOld(byte[][] map){
 		this.map = map;
 		this.width = map.length;
 		this.height = map[0].length;
-		//openMap = new NodeOffsetCoord[width][height];
+		openMap = new NodeOffsetCoord[width][height];
 	}
 
-
-
-
-	
 
 	public List<OffsetCoord> search(OffsetCoord start, OffsetCoord end, boolean incloudEndAround){
 		NodeOffsetCoord n = searchPath(start,end,incloudEndAround);
@@ -84,8 +77,16 @@ public class AStarOffsetCoord {
 	}
 	private void clear(){
 		openList = new PriorityQueue<>();
-		openMap = new HashMap<>();
-				//new NodeOffsetCoord[this.width][this.height];
+		//openMap = new NodeOffsetCoord[this.width][this.height];
+		//closeList = new HashSet<>();
+		for (NodeOffsetCoord[] nodeOffsetCoords : openMap) {
+			for (NodeOffsetCoord nodeOffsetCoord : nodeOffsetCoords) {
+				if(nodeOffsetCoord==null){
+					continue;
+				}
+				nodeOffsetCoord.clear();
+			}
+		}
 		endN = null;
 	}
 
@@ -97,8 +98,7 @@ public class AStarOffsetCoord {
 		this.endN = endN;
 		//起点先添加到开启列表中
 		openList.add(startN);
-		openMap.put(start.toInt(),startN);
-		//openMap[start.x][start.y] = startN;
+		openMap[start.x][start.y] = startN;
 		//openMap.put(startN.getOffsetCoord(),startN);
 
 
@@ -121,7 +121,7 @@ public class AStarOffsetCoord {
 			}
 			//SystemLogger.exceptionLogger.error("f {} g {} h {} distance {}",n.getF(),n.getG(),n.getH(),n.getOffsetCoord().distance(end));
 			OffsetCoord curOffsetCoord = n.getOffsetCoord();
-			NodeOffsetCoord offsetCoord = this.openMap.get(curOffsetCoord.toInt());
+			NodeOffsetCoord offsetCoord = this.openMap[curOffsetCoord.x][curOffsetCoord.y];
 			//判断此节点是否是目标点，是则找到了，跳出
 			if(endAround.contains(curOffsetCoord)){
 				isFind = true;
@@ -165,7 +165,7 @@ public class AStarOffsetCoord {
 		if(checkBound(neighbor,this.width,this.height)){
 			return;
 		}
-		NodeOffsetCoord existN = this.openMap.get(neighbor.toInt());
+		NodeOffsetCoord existN = this.openMap[neighbor.x][neighbor.y];
 		//检查是否已在关闭列表中
 		if(existN!=null&&existN.getState()==2){
 			return;
@@ -173,8 +173,7 @@ public class AStarOffsetCoord {
 		//检查地图是否障碍点
 		if(isBlock(neighbor,this.map)){
 			newNode.setState(2);
-			openMap.put(neighbor.toInt(),newNode);
-			//this.openMap[neighbor.x][neighbor.y] = newNode ;
+			this.openMap[neighbor.x][neighbor.y] = newNode ;
 			return;
 		}
 		
@@ -190,15 +189,13 @@ public class AStarOffsetCoord {
 				existN.setF(newNode.getF());
 				existN.setParentNode(newNode.getParentNode());
 				openList.add(existN);
-				openMap.put(neighbor.toInt(),existN);
-				//this.openMap[neighbor.x][neighbor.y] = existN;
+				this.openMap[neighbor.x][neighbor.y] = existN;
 			}
 		}
 		//不在开启列表中，则添加进去
 		else{
 			openList.add(newNode);
-			openMap.put(neighbor.toInt(),newNode);
-			//this.openMap[neighbor.x][neighbor.y] = newNode;
+			this.openMap[neighbor.x][neighbor.y] = newNode;
 		}
 		
 	}
@@ -261,5 +258,7 @@ public class AStarOffsetCoord {
 		}
 		result.add(p.getOffsetCoord());
 	}
-	
+
+
+
 }

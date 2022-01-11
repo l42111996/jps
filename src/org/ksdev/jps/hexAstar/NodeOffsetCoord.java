@@ -44,6 +44,15 @@ public class NodeOffsetCoord implements Comparable<NodeOffsetCoord>{
 		this.state = state;
 	}
 
+
+	public void clear(){
+		this.offsetCoord = null;
+		this.parentNode = null;
+		this.state=1;
+		this.F=0;
+		this.G=0;
+		this.H=0;
+	}
 	@Override
 	public String toString() {
 		return "Node{" +
