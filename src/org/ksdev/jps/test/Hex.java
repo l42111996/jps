@@ -127,6 +127,17 @@ public class Hex {
         add(new Hex(1, -2, 1));
     }};
 
+
+    public int getDirection(){
+        for (int i = 0; i < directions.size(); i++) {
+            Hex hex = directions.get(i);
+            if(hex.x==this.x&&hex.y==this.y&&hex.z==this.z){
+                return i;
+            }
+        }
+        return -1;
+    }
+
     static public Hex direction(int direction) {
         return Hex.directions.get(direction);
     }

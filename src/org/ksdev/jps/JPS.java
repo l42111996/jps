@@ -112,6 +112,7 @@ public abstract class JPS<T extends Node> {
         double d;
         double ng;
         for (T neighbor : neighbors) {
+            //跳向我们邻居的方向
             // jump in the direction of our neighbor
             T jumpNode = jump(neighbor, node, goals);
 

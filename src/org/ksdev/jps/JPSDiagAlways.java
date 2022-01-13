@@ -14,11 +14,11 @@ public class JPSDiagAlways<T extends Node> extends JPS<T> {
 
         Node parent = parentMap.get(node);
 
-        // directed pruning: can ignore most neighbors, unless forced.
+        // directed pruning: can ignore most neighbors, unless forced. 定向修剪：可以忽略大多数邻居，除非强制。
         if (parent != null) {
             final int x = node.x;
             final int y = node.y;
-            // get normalized direction of travel
+            // get normalized direction of travel 获得归一化的行进方向
             final int dx = (x - parent.x) / Math.max(Math.abs(x - parent.x), 1);
             final int dy = (y - parent.y) / Math.max(Math.abs(y - parent.y), 1);
 
@@ -36,17 +36,23 @@ public class JPSDiagAlways<T extends Node> extends JPS<T> {
                     neighbors.add(graph.getNode(x + dx, y - dy));
             } else { // search horizontally/vertically
                 if (dx == 0) {
+                    //上下可以走
                     if (graph.isWalkable(x, y + dy)) 
                         neighbors.add(graph.getNode(x, y + dy));
+                    //右边不可走，走右上
                     if (!graph.isWalkable(x + 1, y)) 
                         neighbors.add(graph.getNode(x + 1, y + dy));
+                    //左边不可走  走左上
                     if (!graph.isWalkable(x - 1, y)) 
                         neighbors.add(graph.getNode(x - 1, y + dy));
                 } else {
+                    //左右可以走
                     if (graph.isWalkable(x + dx, y)) 
                         neighbors.add(graph.getNode(x + dx, y));
+                    //上面不可走  走左右上
                     if (!graph.isWalkable(x, y + 1)) 
                         neighbors.add(graph.getNode(x + dx, y + 1));
+                    //下面不可走 走左右下
                     if (!graph.isWalkable(x, y - 1)) 
                         neighbors.add(graph.getNode(x + dx, y - 1));
                 }
@@ -81,7 +87,7 @@ public class JPSDiagAlways<T extends Node> extends JPS<T> {
                     (graph.isWalkable(neighbor.x + dx, neighbor.y - dy) && !graph.isWalkable(neighbor.x, neighbor.y - dy))) {
                 return neighbor;
             }
-            // when moving diagonally, must check for vertical/horizontal jump points
+            // when moving diagonally, must check for vertical/horizontal jump points  对角线移动时，必须检查垂直/水平跳跃点
             if (jump(graph.getNode(neighbor.x + dx, neighbor.y), neighbor, goals) != null ||
                     jump(graph.getNode(neighbor.x, neighbor.y + dy), neighbor, goals) != null) {
                 return neighbor;

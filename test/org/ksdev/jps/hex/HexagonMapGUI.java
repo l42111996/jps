@@ -27,7 +27,6 @@ public class HexagonMapGUI {
     static double outR = 5;
     static int width = 1800;
     static int height = 1200;
-    byte[][] map;
 
     /**
      * Launch the application.
@@ -56,9 +55,6 @@ public class HexagonMapGUI {
      * Initialize the contents of the frame.
      */
     private void initialize() {
-        map = new byte[width][height];
-
-
         frame = new JFrame();
         frame.setBounds(100, 100, width, height);
         frame.setSize(width, height);
@@ -143,54 +139,57 @@ public class HexagonMapGUI {
 
             long startTime = System.currentTimeMillis();
             LinkedList<OffsetCoord> path = null;
-
+            ////
             AStarOffsetCoord aStarHex = new AStarOffsetCoord(map);
             path = aStarHex.search(sx,sy,tx,ty,true);
             if (path != null) {
                 System.out.println("a* 耗时"+(System.currentTimeMillis()-startTime)+" 路径 "+path.size());
                 List<Hex> aPath = path.stream().map(offsetCoord -> OffsetCoord.qoffsetToCube(OffsetCoord.ODD,offsetCoord)).collect(Collectors.toList());
                 checkPoint(map,aPath);
-                 //for (OffsetCoord coordinate : path) {
-                 //drawByIndex(g2d,coordinate,new Color(155,233,188));
-                 //}
+                 for (OffsetCoord coordinate : path) {
+                 drawByIndex(g2d,coordinate,new Color(155,233,188));
+                 }
             }else{
                 System.out.println("a* 终点没有找到"+end);
             }
-
-
+            //
+            //
+            //
+            //startTime = System.currentTimeMillis();
+            //AStarTwoWayOffsetCoord aStarTwoWayOffsetCoord = new AStarTwoWayOffsetCoord(map);
+            //path = aStarTwoWayOffsetCoord.search(sx,sy,tx,ty);
+            //if (path != null) {
+            //    System.out.println("双向 a* 耗时"+(System.currentTimeMillis()-startTime)+" 路径 "+path.size());
+            //    List<Hex> aPath = path.stream().map(offsetCoord -> OffsetCoord.qoffsetToCube(OffsetCoord.ODD,offsetCoord)).collect(Collectors.toList());
+            //    checkPoint(map,aPath);
+            //    for (OffsetCoord coordinate : path) {
+            //        drawByIndex(g2d,coordinate,new Color(155,233,188));
+            //    }
+            //}else{
+            //    System.out.println("双向  a* 终点没有找到"+end);
+            //}
 
             startTime = System.currentTimeMillis();
-            AStarTwoWayOffsetCoord aStarTwoWayOffsetCoord = new AStarTwoWayOffsetCoord(map);
-            path = aStarTwoWayOffsetCoord.search(sx,sy,tx,ty);
-            if (path != null) {
-                System.out.println("双向 a* 耗时"+(System.currentTimeMillis()-startTime)+" 路径 "+path.size());
-                List<Hex> aPath = path.stream().map(offsetCoord -> OffsetCoord.qoffsetToCube(OffsetCoord.ODD,offsetCoord)).collect(Collectors.toList());
-                checkPoint(map,aPath);
-                for (OffsetCoord coordinate : path) {
-                    drawByIndex(g2d,coordinate,new Color(155,233,188));
+            JPSHex jpsHex = new JPSHexDiagAlways(map);
+            List<Hex> jpsPath = jpsHex.search(OffsetCoord.qoffsetToCube(OffsetCoord.ODD,start),OffsetCoord.qoffsetToCube(OffsetCoord.ODD,end));
+            if (jpsPath != null) {
+                System.out.println("JPS 耗时"+(System.currentTimeMillis()-startTime)+" 路径 "+jpsPath.size());
+                checkPoint(map,jpsPath);
+                // for (Coordinate coordinate : apath.openList) {
+                // drawByIndex(g2d,coordinate,new Color(155,233,188));
+                // }
+//				for (Coordinate coordinate : apath.closeList) {
+//					drawByIndex(g2d, coordinate, new Color(123, 70, 188));
+//				}
+                for (Hex node : jpsPath) {
+                    drawByIndex(g2d, OffsetCoord.qoffsetFromCube(OffsetCoord.ODD,node), new Color(100, 50, 255));
                 }
-            }else{
-                System.out.println("双向  a* 终点没有找到"+end);
-            }
 
-//            startTime = System.currentTimeMillis();
-//            JPSHex jpsHex = new JPSHexDiagAlways(map);
-//            List<Hex> jpsPath = jpsHex.search(OffsetCoord.qoffsetToCube(OffsetCoord.ODD,start),OffsetCoord.qoffsetToCube(OffsetCoord.ODD,end));
-//            if (jpsPath != null) {
-//                System.out.println("JPS 耗时"+(System.currentTimeMillis()-startTime)+" 路径 "+jpsPath.size());
-//                checkPoint(map,jpsPath);
-//                // for (Coordinate coordinate : apath.openList) {
-//                // drawByIndex(g2d,coordinate,new Color(155,233,188));
-//                // }
-////				for (Coordinate coordinate : apath.closeList) {
-////					drawByIndex(g2d, coordinate, new Color(123, 70, 188));
-////				}
-//                for (Hex node : jpsPath) {
-//                    drawByIndex(g2d, OffsetCoord.qoffsetFromCube(OffsetCoord.ODD,node), new Color(100, 50, 255));
-//                }
-//            }else{
-//                System.out.println("JPS 终点没有找到"+end);
-//            }
+                drawByIndex(g2d, new OffsetCoord(tx,ty), new Color(155,233,188));
+
+            }else{
+                System.out.println("JPS 终点没有找到"+end+" 耗时 "+(System.currentTimeMillis()-startTime));
+            }
         }
 
 

@@ -18,18 +18,83 @@ class JPSHexDiagAlways extends JPSHex {
 
     @Override
     protected Set<Integer> findNeighborsDirections(HexNode node, Map<HexNode, HexNode> parentMap) {
-        //TODO 这里应该有邻居的裁剪
         Set<Integer> hexes = new HashSet<>();
-        for (int direction = 0; direction < 6; direction++) {
+        //这里应该有邻居的裁剪
+        HexNode parent = parentMap.get(node);
+        Hex curHex = node.getHex();
+        if(parent==null){
+            for (int direction = 0; direction < 6; direction++) {
+                hexes.add(direction);
+            }
+        }else{
+            final int x = curHex.x;
+            final int y = curHex.y;
+            final int z = curHex.z;
+            final int dx = (x - parent.getHex().x) / Math.max(Math.abs(x - parent.getHex().x), 1);
+            final int dy = (y - parent.getHex().y) / Math.max(Math.abs(y - parent.getHex().y), 1);
+            final int dz = (z - parent.getHex().z) / Math.max(Math.abs(z - parent.getHex().z), 1);
+
+            Hex directionHex = new Hex(dx,dy,dz);
+            int direction = directionHex.getDirection();
+            switch (direction){
+                //右下
+                case Hex.FACE_RIGHT_DOWN:
+                    hexes.add(Hex.FACE_RIGHT_UP);
+                    hexes.add(Hex.FACE_DOWN);
+                    break;
+                case Hex.FACE_UP:
+                    hexes.add(Hex.FACE_LEFT_UP);
+                    hexes.add(Hex.FACE_RIGHT_UP);
+                    break;
+                case Hex.FACE_LEFT_DOWN:
+                    hexes.add(Hex.FACE_LEFT_UP);
+                    hexes.add(Hex.FACE_DOWN);
+                    break;
+                //单向没问题
+                case Hex.FACE_RIGHT_UP:
+                    if(!isWalkable(curHex.neighbor(Hex.FACE_DOWN))&&isWalkable(curHex.neighbor(Hex.FACE_RIGHT_DOWN))){
+                        hexes.add(Hex.FACE_RIGHT_DOWN);
+                    }
+                    if(!isWalkable(curHex.neighbor(Hex.FACE_LEFT_UP))&&isWalkable(curHex.neighbor(Hex.FACE_UP))){
+                        hexes.add(Hex.FACE_UP);
+                    }
+                    break;
+                case Hex.FACE_LEFT_UP:
+                    if(!isWalkable(curHex.neighbor(Hex.FACE_RIGHT_UP))&&isWalkable(curHex.neighbor(Hex.FACE_UP))){
+                        hexes.add(Hex.FACE_UP);
+                    }
+                    if(!isWalkable(curHex.neighbor(Hex.FACE_DOWN))&&isWalkable(curHex.neighbor(Hex.FACE_LEFT_DOWN))){
+                        hexes.add(Hex.FACE_LEFT_DOWN);
+                    }
+                    break;
+                case Hex.FACE_DOWN:
+                    if(!isWalkable(curHex.neighbor(Hex.FACE_LEFT_UP))&&isWalkable(curHex.neighbor(Hex.FACE_LEFT_DOWN))){
+                        hexes.add(Hex.FACE_LEFT_DOWN);
+                    }
+                    if(!isWalkable(curHex.neighbor(Hex.FACE_RIGHT_UP))&&isWalkable(curHex.neighbor(Hex.FACE_RIGHT_DOWN))){
+                        hexes.add(Hex.FACE_RIGHT_DOWN);
+                    }
+                    break;
+                default:
+                    System.err.println("错误朝向"+direction);
+            }
             hexes.add(direction);
-            //Hex hex = node.getHex().neighbor(direction);
-            //hexes.add(hex);
         }
         return hexes;
     }
 
     @Override
-    protected boolean jump(int direction, Hex current, Set<Hex> goals) {
+    protected Hex jump(Hex neighbor, Hex current, Set<Hex> goals,int direction) {
+        if (neighbor == null || !isWalkable(neighbor)) return null;
+        if (goals.contains(neighbor)){
+            return neighbor;
+        }
+
+        //int direction = neighbor.subtract(current).getDirection();
+        //if(direction!=d){
+        //    System.out.println();
+        //}
+
         //根据 朝向计算是否有强迫邻居  如果有强迫邻居  则当前邻居是跳点
         //FACE_RIGHT_DOWN = 0,FACE_RIGHT_UP = 1,FACE_UP = 2,FACE_LEFT_UP = 3,FACE_LEFT_DOWN = 4,FACE_DOWN = 5,
 
@@ -41,58 +106,53 @@ class JPSHexDiagAlways extends JPSHex {
         //                   FACE_DOWN
 
        switch (direction){
+           //向上
+           case Hex.FACE_UP:
+               if(jump(neighbor.neighbor(Hex.FACE_LEFT_UP),neighbor,goals,Hex.FACE_LEFT_UP)!=null||jump(neighbor.neighbor(Hex.FACE_RIGHT_UP),neighbor,goals,Hex.FACE_RIGHT_UP)!=null){
+                   return neighbor;
+               }
+               break;
            //右下
            case Hex.FACE_RIGHT_DOWN:
-                if(!isWalkable(current.neighbor(Hex.FACE_RIGHT_UP))&&isWalkable(current.neighbor(Hex.FACE_RIGHT_DIAGONAL))){
-                    return true;
-                }
-               if(!isWalkable(current.neighbor(Hex.FACE_DOWN))&&isWalkable(current.neighbor(Hex.FACE_RIGHT_DOWN_DIAGONAL))){
-                   return true;
+               if(jump(neighbor.neighbor(Hex.FACE_DOWN),neighbor,goals,Hex.FACE_DOWN)!=null||jump(neighbor.neighbor(Hex.FACE_RIGHT_UP),neighbor,goals,Hex.FACE_RIGHT_UP)!=null){
+                   return neighbor;
                }
                break;
+           //左下
+           case Hex.FACE_LEFT_DOWN:
+               if(jump(neighbor.neighbor(Hex.FACE_LEFT_UP),neighbor,goals,Hex.FACE_LEFT_UP)!=null||jump(neighbor.neighbor(Hex.FACE_DOWN),neighbor,goals,Hex.FACE_DOWN)!=null){
+                   return neighbor;
+               }
+               break;
+
+           //单向没问题
            case Hex.FACE_RIGHT_UP:
-               if(!isWalkable(current.neighbor(Hex.FACE_RIGHT_DOWN))&&isWalkable(current.neighbor(Hex.FACE_RIGHT_DIAGONAL))){
-                   return true;
+               if(!isWalkable(neighbor.neighbor(Hex.FACE_DOWN))&&isWalkable(neighbor.neighbor(Hex.FACE_RIGHT_DOWN))){
+                   return neighbor;
                }
-               if(!isWalkable(current.neighbor(Hex.FACE_UP))&&isWalkable(current.neighbor(Hex.FACE_RIGHT_UP_DIAGONAL))){
-                   return true;
-               }
-               break;
-           case Hex.FACE_UP:
-               if(!isWalkable(current.neighbor(Hex.FACE_LEFT_UP))&&isWalkable(current.neighbor(Hex.FACE_LEFT_UP_DIAGONAL))){
-                   return true;
-               }
-               if(!isWalkable(current.neighbor(Hex.FACE_RIGHT_UP))&&isWalkable(current.neighbor(Hex.FACE_RIGHT_UP_DIAGONAL))){
-                   return true;
+               if(!isWalkable(neighbor.neighbor(Hex.FACE_LEFT_UP))&&isWalkable(neighbor.neighbor(Hex.FACE_UP))){
+                   return neighbor;
                }
                break;
            case Hex.FACE_LEFT_UP:
-               if(!isWalkable(current.neighbor(Hex.FACE_LEFT_DOWN))&&isWalkable(current.neighbor(Hex.FACE_LEFT_DIAGONAL))){
-                   return true;
+               if(!isWalkable(neighbor.neighbor(Hex.FACE_DOWN))&&isWalkable(neighbor.neighbor(Hex.FACE_LEFT_DOWN))){
+                   return neighbor;
                }
-               if(!isWalkable(current.neighbor(Hex.FACE_UP))&&isWalkable(current.neighbor(Hex.FACE_LEFT_UP_DIAGONAL))){
-                   return true;
-               }
-               break;
-           case Hex.FACE_LEFT_DOWN:
-               if(!isWalkable(current.neighbor(Hex.FACE_LEFT_UP))&&isWalkable(current.neighbor(Hex.FACE_LEFT_DIAGONAL))){
-                   return true;
-               }
-               if(!isWalkable(current.neighbor(Hex.FACE_DOWN))&&isWalkable(current.neighbor(Hex.FACE_LEFT_DOWN_DIAGONAL))){
-                   return true;
+               if(!isWalkable(neighbor.neighbor(Hex.FACE_RIGHT_UP))&&isWalkable(neighbor.neighbor(Hex.FACE_UP))){
+                   return neighbor;
                }
                break;
            case Hex.FACE_DOWN:
-               if(!isWalkable(current.neighbor(Hex.FACE_LEFT_DOWN))&&isWalkable(current.neighbor(Hex.FACE_LEFT_DOWN_DIAGONAL))){
-                   return true;
+               if(!isWalkable(neighbor.neighbor(Hex.FACE_LEFT_UP))&&isWalkable(neighbor.neighbor(Hex.FACE_LEFT_DOWN))){
+                   return neighbor;
                }
-               if(!isWalkable(current.neighbor(Hex.FACE_RIGHT_DOWN))&&isWalkable(current.neighbor(Hex.FACE_RIGHT_DOWN_DIAGONAL))){
-                   return true;
+               if(!isWalkable(neighbor.neighbor(Hex.FACE_RIGHT_UP))&&isWalkable(neighbor.neighbor(Hex.FACE_RIGHT_DOWN))){
+                   return neighbor;
                }
                break;
            default:
                System.err.println("错误朝向"+direction);
        }
-        return false;
+        return jump(neighbor.neighbor(direction),neighbor,goals,direction);
     }
 }

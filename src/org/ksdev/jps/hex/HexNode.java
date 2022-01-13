@@ -1,6 +1,7 @@
 package org.ksdev.jps.hex;
 
 import org.ksdev.jps.test.Hex;
+import org.ksdev.jps.test.OffsetCoord;
 
 import java.util.Comparator;
 
@@ -18,26 +19,42 @@ public class HexNode{
 
 
 
-    public void calc(Hex end, int dist){
-        calcG(dist);
+    public void calc(Hex end){
+        calcG();
         calcH(end);
         calcF();
     }
 
     // 计算G值
-    private void calcG(int dist) {
+    private void calcG() {
         if(parentNode==null){
-            this.g = dist;
+            this.g = 1;
         }else{
-            this.g = parentNode.g+dist*parentNode.getHex().distance(this.hex);
+            this.g = parentNode.g+parentNode.getHex().distance(this.hex);
         }
     }
 
     // 计算H值
     private void calcH(Hex end) {
-        int num = hex.distance(end);
-                //Math.abs(n.getX() - endN.getX()) + Math.abs(n.getY() - endN.getY());
-        this.h = num*10;
+
+        //final OffsetCoord endOffsetCoord = OffsetCoord.qoffsetFromCube(OffsetCoord.ODD,end);
+        ////end.getOffsetCoord();
+        //final OffsetCoord nowOffsetCoord = OffsetCoord.qoffsetFromCube(OffsetCoord.ODD,this.hex);
+        //int endY = endOffsetCoord.y;
+        //int endX = endOffsetCoord.x;
+        //
+        //int nowX = nowOffsetCoord.x;
+        //int nowY = nowOffsetCoord.y;
+        //int num =
+        //        //n.getOffsetCoord().distance(endN.getOffsetCoord());
+        //        Math.abs(nowX - endX) + Math.abs(nowY - endY);
+        //this.setH(num);
+
+
+        int num =
+        // hex.distance(end);
+                Math.abs(getHex().x - end.x) + Math.abs(getHex().y - end.y);
+        this.h = num;
     }
 
     // 计算F值
@@ -95,4 +112,6 @@ public class HexNode{
     public void setHex(Hex hex) {
         this.hex = hex;
     }
+
+
 }

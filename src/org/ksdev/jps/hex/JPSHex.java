@@ -1,9 +1,11 @@
 package org.ksdev.jps.hex;
 
+import org.ksdev.jps.Node;
 import org.ksdev.jps.test.Hex;
 import org.ksdev.jps.test.OffsetCoord;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by JinMiao
@@ -42,6 +44,7 @@ public abstract class JPSHex {
             closed.add(node);
             //已经找到终点路径
             if (goals.contains(node.getHex())) {
+                System.out.println("JPS 关闭列表长度"+closed.size());
                 return backtrace(node);
             }
             // add all possible next steps from the current node
@@ -65,31 +68,9 @@ public abstract class JPSHex {
         for (int direction : neighborsDirections) {
             // jump in the direction of our neighbor
             //根据朝向搜索跳点
-            Hex jumpNode = node.getHex();
-            boolean isJumpPoint = false;
-            for(;;){
-                if(jumpNode==null){
-                    break;
-                }
-                if (!isWalkable(jumpNode)){
-                    break;
-                }
-                if (goals.contains(jumpNode)){
-                    isJumpPoint = true;
-                    break;
-                }
-                if(jump(direction, jumpNode, goals)){
-                    jumpNode = jumpNode.neighbor(direction);
-                    isJumpPoint = true;
-                    break;
-                }
-                jumpNode = jumpNode.neighbor(direction);
-            }
+            Hex neighbor = node.getHex().neighbor(direction);
 
-
-            if(!isJumpPoint){
-                continue;
-            }
+            Hex jumpNode = jump(neighbor, node.getHex(), goals,direction);
 
             // don't add a node we have already gotten to quicker
             if (jumpNode == null ||!isWalkable(jumpNode)|| closed.contains(jumpNode)) {
@@ -97,7 +78,7 @@ public abstract class JPSHex {
             }
             //计算当前阶段的 g h f
             HexNode newNode = new HexNode(node,jumpNode);
-            newNode.calc(goal,10);
+            newNode.calc(goal);
 
 
             HexNode existN = this.openMap.get(jumpNode);
@@ -111,11 +92,13 @@ public abstract class JPSHex {
                     existN.setParentNode(newNode.getParentNode());
                     open.add(existN);
                     this.openMap.put(existN.getHex(),existN);
+                    parentMap.put(existN,existN.getParentNode());
                 }
             }//不在开启列表中，则添加进去
             else{
                 open.add(newNode);
                 this.openMap.put(newNode.getHex(),newNode);
+                parentMap.put(newNode,newNode.getParentNode());
             }
         }
     }
@@ -182,6 +165,6 @@ public abstract class JPSHex {
      * Search towards the child from the parent, returning when a jump point is found.
      * 从父级向子级搜索，找到跳转点后返回。
      */
-    protected abstract boolean jump(int direction, Hex current, Set<Hex> goals);
+    protected abstract Hex jump(Hex direction, Hex current, Set<Hex> goals,int d);
 
 }

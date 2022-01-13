@@ -55,6 +55,13 @@ public class AStarOffsetCoord {
 		OffsetCoord endOffsetCoord = new OffsetCoord(tx,ty);
 		NodeOffsetCoord n = searchPath(new OffsetCoord(x,y),endOffsetCoord,incloudEndAround);
 		if(n!=null){
+			int closeCount = 0;
+			for (NodeOffsetCoord value : openMap.values()) {
+				if(value.getState()==2){
+					closeCount++;
+				}
+			}
+			System.out.println("a* 关闭列表长度"+closeCount);
 			setResultOffSetCoord(result, n);
 			if(!n.getOffsetCoord().equals(endOffsetCoord)&&!checkBound(endOffsetCoord,this.width,this.height)&&!isBlock(endOffsetCoord,this.map)){
 				result.add(new OffsetCoord(tx,ty));
@@ -68,7 +75,7 @@ public class AStarOffsetCoord {
 			//SystemLogger.mapLogger.info("a* 寻路结束 路径长度 {} 耗时 {}",result!=null?result.size():0,System.currentTimeMillis()-startMill);
 		}
 		if(!result.isEmpty()){
-			result = Floyd.floydSmooth(result,this.map);
+			//result = Floyd.floydSmooth(result,this.map);
 			result.removeFirst();
 		}
 		//for (OffsetCoord offsetCoord : result) {
