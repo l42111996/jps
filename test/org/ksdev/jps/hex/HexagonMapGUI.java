@@ -146,9 +146,9 @@ public class HexagonMapGUI {
                 System.out.println("a* 耗时"+(System.currentTimeMillis()-startTime)+" 路径 "+path.size());
                 List<Hex> aPath = path.stream().map(offsetCoord -> OffsetCoord.qoffsetToCube(OffsetCoord.ODD,offsetCoord)).collect(Collectors.toList());
                 checkPoint(map,aPath);
-                 for (OffsetCoord coordinate : path) {
-                 drawByIndex(g2d,coordinate,new Color(155,233,188));
-                 }
+                for (OffsetCoord coordinate : path) {
+                    drawByIndex(g2d,coordinate,new Color(155,233,188));
+                }
             }else{
                 System.out.println("a* 终点没有找到"+end);
             }
@@ -170,21 +170,25 @@ public class HexagonMapGUI {
             //}
 
             startTime = System.currentTimeMillis();
-            JPSHex jpsHex = new JPSHexDiagAlways(map);
-            List<Hex> jpsPath = jpsHex.search(OffsetCoord.qoffsetToCube(OffsetCoord.ODD,start),OffsetCoord.qoffsetToCube(OffsetCoord.ODD,end));
+
+
+            JpsOffsetCoord jpsOffsetCoord = new JpsOffsetCoord(map);
+            //JPSHex jpsHex = new JPSHexDiagAlways(map);
+            LinkedList<OffsetCoord> jpsPath = jpsOffsetCoord.search(sx,sy,tx,ty,true);
             if (jpsPath != null) {
                 System.out.println("JPS 耗时"+(System.currentTimeMillis()-startTime)+" 路径 "+jpsPath.size());
-                checkPoint(map,jpsPath);
+                List<Hex> aPath = path.stream().map(offsetCoord -> OffsetCoord.qoffsetToCube(OffsetCoord.ODD,offsetCoord)).collect(Collectors.toList());
+                checkPoint(map,aPath);
                 // for (Coordinate coordinate : apath.openList) {
                 // drawByIndex(g2d,coordinate,new Color(155,233,188));
                 // }
 //				for (Coordinate coordinate : apath.closeList) {
 //					drawByIndex(g2d, coordinate, new Color(123, 70, 188));
 //				}
-                for (Hex node : jpsPath) {
-                    drawByIndex(g2d, OffsetCoord.qoffsetFromCube(OffsetCoord.ODD,node), new Color(100, 50, 255));
-                }
 
+                for (OffsetCoord coordinate : path) {
+                    drawByIndex(g2d,coordinate,new Color(100, 50, 255));
+                }
                 drawByIndex(g2d, new OffsetCoord(tx,ty), new Color(155,233,188));
 
             }else{
@@ -227,7 +231,7 @@ public class HexagonMapGUI {
             if (coordinate.x % 2 == 1) {
                 y += innerR;
             }
-            drawHexSolid(g2d, new Point(x, y), color);
+            //drawHexSolid(g2d, new Point(x, y), color);
             //Font font = new Font("Courier", Font.PLAIN, (int) (outR / 2));
             //g2d.setFont(font);
             //g2d.drawString("(" + coordinate.x + "," + coordinate.y + ")", (int) (x - outR / 1.5), (int) (y + outR / 4));

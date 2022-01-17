@@ -169,8 +169,8 @@ public class StaticHexagonMapGUI {
             //
 
             startTime = System.currentTimeMillis();
-            JPSHex jpsHex = new JPSHexDiagAlways(map);
-            List<Hex> jpsPath = jpsHex.search(OffsetCoord.qoffsetToCube(OffsetCoord.ODD,start),OffsetCoord.qoffsetToCube(OffsetCoord.ODD,end));
+            JpsOffsetCoord jpsHex = new JpsOffsetCoord(map);
+            List<OffsetCoord> jpsPath = jpsHex.search(sx,sy,tx,ty,false);
             if (jpsPath != null) {
                 System.out.println("JPS 耗时"+(System.currentTimeMillis()-startTime)+" 路径 "+jpsPath.size());
                 //checkPoint(map,jpsPath);
@@ -180,8 +180,8 @@ public class StaticHexagonMapGUI {
 //				for (Coordinate coordinate : apath.closeList) {
 //					drawByIndex(g2d, coordinate, new Color(123, 70, 188));
 //				}
-                for (Hex node : jpsPath) {
-                    drawByIndex(g2d, OffsetCoord.qoffsetFromCube(OffsetCoord.ODD,node), new Color(100, 50, 255));
+                for (OffsetCoord node : jpsPath) {
+                    drawByIndex(g2d, node, new Color(100, 50, 255));
                 }
 
             }else{
